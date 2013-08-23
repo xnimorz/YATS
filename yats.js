@@ -36,20 +36,25 @@
 	/**
 	 * Класс представления результатов теста
 	 * @constructor
-	 * @attribute comment - комментарий к тесту
+	 * @attribute comments - комментарий к тесту
 	 * @attribute pass - успешность теста
 	 */
 	function TestItem()
 	{
-		this.comment = "";
+		this.comments = "";
 		this.pass = null;
+	}
+
+	TestItem.prototype.comment = function(text)
+	{
+		this.comments = text;
 	}
 
 	/**
 	 * Интерфейс для стандартных тестовых функций
 	 * @constructor
 	 */
-	function StandardTestTemplate()
+	function TestTemplate()
 	{
 		/**
 		 * Функция проведения теста. Заполняет данные testItem
@@ -94,7 +99,7 @@
 
 		}
 	}
-	TestCheck.prototype = new StandardTestTemplate();
+	TestCheck.prototype = new TestTemplate();
 	TestCheck.prototype.constructor = TestCheck;
 
 	/**
@@ -121,7 +126,7 @@
 			testItem.pass = new SuccessResult();
 		}
 	}
-	TestEqual.prototype = new StandardTestTemplate();
+	TestEqual.prototype = new TestTemplate();
 	TestEqual.prototype.constructor = TestEqual;
 
 	/**
@@ -153,7 +158,7 @@
 		 testItem.pass = new SuccessResult();
 	 }
 	}
-	TestExist.prototype = new StandardTestTemplate();
+	TestExist.prototype = new TestTemplate();
 	TestExist.prototype.constructor = TestExist;
 
 	/**
@@ -185,8 +190,236 @@
 			testItem.pass = new SuccessResult();
 		}
 	}
-	TestNotExist.prototype = new StandardTestTemplate();
+	TestNotExist.prototype = new TestTemplate();
 	TestNotExist.prototype.constructor = TestNotExist;
+
+	/**
+	 * Класс тестирования переменных { yats.test(variable).методТестирования }
+	 * @param value - переменная для тестирования
+	 * @param yats - ссылка на глобальный объект yats
+	 * @constructor
+	 */
+	function ValueTestGroup(value, yats)
+	{
+		this.testValue = value;
+		this.yats = yats;
+		this.comments = "";
+	}
+
+	/**
+	 * Комментирование теста
+	 * @param {string} text
+	 * @returns ссылка на себя (цепочные вызовы)
+	 */
+	ValueTestGroup.prototype.comment = function(text)
+	{
+		this.comments = text;
+		return this;
+	}
+
+	/**
+	 * Подготовка testItem
+	 * @returns {TestItem} объект, подготовленный для записи результата теста
+	 */
+	ValueTestGroup.prototype.prepareTestItem = function()
+	{
+		var test = new TestItem();
+		test.testValue = this.testValue;
+		test.comment(this.comments);
+		this.comments = "";
+		return test;
+	}
+
+	/**
+	 * Тест на соответствие строке или регулярному выражению
+	 * @param {String, RegExp} item
+	 * @returns ссылка на себя (цепочные вызовы)
+	 */
+	ValueTestGroup.prototype.isMatch = function(item)
+	{
+		var test = this.prepareTestItem();
+		try
+		{
+			if (this.testValue.match(item))
+				test.pass = new SuccessResult();
+			else test.pass = new FailResult();
+		}
+		catch(e)
+		{
+		   test.pass = new ExceptionResult();
+		}
+		this.yats.addNewItem(test);
+		return this;
+	}
+
+	/**
+	 * Тест на несоответствие строке || RegExp
+	 * @param {String, RegExp} item
+	 * @returns ссылка на себя (цепочные вызовы)
+	 */
+	ValueTestGroup.prototype.isNotMatch = function(item)
+	{
+		var test = this.prepareTestItem();
+		if (this.testValue.match(item))
+			test.pass = new FailResult();
+		else test.pass = new SuccessResult();
+		this.yats.addNewItem(test);
+		return this;
+	}
+
+	/**
+	 * Тест на определенность переменной (true)
+	 * @returns ссылка на себя (цепочные вызовы)
+	 */
+	ValueTestGroup.prototype.isDefined = function()
+	{
+		var test = this.prepareTestItem();
+		if (this.testValue)
+			test.pass = new SuccessResult();
+		else test.pass = new FailResult();
+		this.yats.addNewItem(test);
+		return this;
+	}
+
+	/**
+	 * Тест на неопределенность (false)
+	 * @returns ссылка на себя (цепочные вызовы)
+	 */
+	ValueTestGroup.prototype.isUndefined = function()
+	{
+		var test = this.prepareTestItem();
+		if (this.testValue)
+			test.pass = new FailResult();
+		else test.pass = new SuccessResult();
+		this.yats.addNewItem(test);
+		return this;
+	}
+
+	/**
+	 * Тест на равенство переменной заданому item
+	 * @param {object} item
+	 * @returns ссылка на себя (цепочные вызовы)
+	 */
+	ValueTestGroup.prototype.is = function(item)
+	{
+		var test = this.prepareTestItem();
+		if (this.testValue == item)
+		{
+			test.pass = SuccessResult();
+		}
+		else test.pass = new FailResult();
+		this.yats.addNewItem(test);
+		return this;
+	}
+
+	/**
+	 * Проверяет входит ли item в заданный объект\строку\массив
+	 * @param item
+	 * @returns ссылка на себя (цепочные вызовы)
+	 */
+	ValueTestGroup.prototype.isContain = function(item)
+	{
+		var test = this.prepareTestItem();
+		//item есть RegExp:
+		if (item instanceof RegExp && this.testValue.match)
+		{
+			if (this.testValue.match(item))
+			{
+				test.pass = new SuccessResult();
+				this.yats.addNewItem(test);
+				return this;
+			}
+		}
+		//Определена функция поиска:
+		if (this.testValue.indexOf)
+		{
+			if (this.testValue.indexOf(item) >= 0)
+			{
+				test.pass = new SuccessResult();
+				this.yats.addNewItem(test);
+				return this;
+			}
+		}
+		//Проходим по значениям в testValue
+		for (var i in this.testValue)
+		{
+			if (this.testValue[i] == item)
+			{
+				test.pass = new SuccessResult();
+				this.yats.addNewItem(test);
+				return this;
+			}
+		}
+		//Полное соответствие:
+		if (item == this.testValue)
+		{
+			test.pass = new SuccessResult();
+			this.yats.addNewItem(test);
+			return this;
+		}
+		//Ничего не оказалось верным
+		test.pass = new FailResult();
+		this.yats.addNewItem(test);
+		return this;
+	}
+
+	/**
+	 * Возвращает к глобальному объекту.
+	 * Завершение тестирование переменной (для цепочных вызовов)
+	 * Не обязательно вызывать.
+	 * @returns yats
+	 */
+	ValueTestGroup.prototype.end = function()
+	{
+		return this.yats;
+	}
+
+	/**
+	 * Проверка на соответствие объектов друг-другу (без рекурсивного спуска)
+	 * @param {object} other
+	 * @returns ссылка на себя (цепочные вызовы)
+	 */
+	ValueTestGroup.prototype.isEqual = function(other)
+	{
+		try
+		{
+			var test = this.prepareTestItem();
+			for (var itemName in this.testValue)
+			{
+				if (!(itemName in other))
+				{
+					test.pass = new FailResult();
+					this.yats.addNewItem(test);
+					return this;
+				}
+				if (other[itemName] != this.testValue[itemName])
+				{
+					test.pass = new FailResult();
+					this.yats.addNewItem(test);
+					return this;
+				}
+			}
+			for (var itemName in other)
+			{
+				if (!(itemName in this.testValue))
+				{
+					test.pass = new FailResult();
+					this.yats.addNewItem(test);
+					return this;
+				}
+
+			}
+		}
+		catch(e)
+		{
+		   test.pass = new ExceptionResult();
+			this.yats.addNewItem(test);
+			return this;
+		}
+		test.pass = new SuccessResult();
+		this.yats.addNewItem(test);
+		return this;
+	}
 
 	/**
 	 * Группа тестов (элемент, объединяющий тесты)
@@ -290,8 +523,15 @@
 			}
 			 else
 			if (!(this.testStack[i].pass instanceof SuccessResult))
-		        console.log("%c %s - %s","color:red",this.testStack[i].comment,this.testStack[i].pass);
-				else console.log("%c %s - %s","color: blue",this.testStack[i].comment,this.testStack[i].pass);
+			{
+		        console.log("%c %s - %s","color:red",this.testStack[i].comments,this.testStack[i].pass.toString(),this.testStack[i].testValue?this.testStack[i].testValue:"");
+
+			}
+				else
+			{
+				console.log("%c %s - %s","color: blue",this.testStack[i].comments,this.testStack[i].pass.toString(),this.testStack[i].testValue?this.testStack[i].testValue:"");
+
+			}
 		 }
 		console.groupEnd();
 		console.groupEnd();
@@ -305,6 +545,10 @@
 	{
 		return this.description;
 	}
+
+
+
+
 
 	/**
 	 * Корневая группа, собственно объект с методами для тестирования
@@ -348,7 +592,7 @@
 		   var test = new TestItem();
 			if (testComment != "")
 			{
-			   test.comment = testComment;
+			   test.comment(testComment);
 			   testComment = "";
 			}
 			return test;
@@ -459,6 +703,32 @@
 		this.toConsole = function()
 		{
 			this.consoleFormat();
+			return this;
+		}
+
+		/**
+		 * Тестирование переменной
+		 * @param value - переменная для теста
+		 * @returns {ValueTestGroup} - объект с методами для теста переменной (также поддержка комментариев, цепочных вызовов)
+		 */
+		this.test = function(value)
+		{
+			return new ValueTestGroup(value,this);
+		}
+
+		/**
+		 * Очистка стека тестов
+		 */
+		this.clearStack = function()
+		{
+			this.testStack = [];
+			this.results =
+			{
+				total : 0,
+				success:0,
+				fail:0,
+				error:0
+			}
 			return this;
 		}
 
