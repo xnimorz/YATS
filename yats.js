@@ -305,9 +305,13 @@
 		var test = this.prepareTestItem();
 		if (this.testValue == item)
 		{
-			test.pass = SuccessResult();
+			test.pass = new SuccessResult();
 		}
-		else test.pass = new FailResult();
+		else
+		{
+			test.pass = new FailResult();
+		}
+
 		this.yats.addNewItem(test);
 		return this;
 	}
@@ -331,7 +335,7 @@
 			}
 		}
 		//Определена функция поиска:
-		if (this.testValue.indexOf)
+		if (this.testValue && this.testValue.indexOf)
 		{
 			if (this.testValue.indexOf(item) >= 0)
 			{
@@ -381,9 +385,16 @@
 	 */
 	ValueTestGroup.prototype.isEqual = function(other)
 	{
+		var test = this.prepareTestItem();
 		try
 		{
-			var test = this.prepareTestItem();
+			if (this.testValue == other)
+			{
+				test.pass = new SuccessResult();
+				this.yats.addNewItem(test);
+				return this;
+			}
+
 			for (var itemName in this.testValue)
 			{
 				if (!(itemName in other))
@@ -399,6 +410,7 @@
 					return this;
 				}
 			}
+
 			for (var itemName in other)
 			{
 				if (!(itemName in this.testValue))
@@ -409,10 +421,11 @@
 				}
 
 			}
+
 		}
 		catch(e)
 		{
-		   test.pass = new ExceptionResult();
+		   test.pass = new FailResult();
 			this.yats.addNewItem(test);
 			return this;
 		}
@@ -428,8 +441,8 @@
 	 */
 	function TestGroup(name,description)
 	{
-		this.name =  name;
-		this.description = description;
+		this.name =  name || "";
+		this.description = description || "";
 		//Стек вызовов
 		this.testStack = [];
 		//Метка закрытости группы (для не корневой группы)
@@ -569,8 +582,10 @@
 		var prepareArray = function(test,expression)
 		{
 			var result = [test], isArray = false;
+
 			try
 			{
+				if (expression && expression.length)
 				for (var i = 0; i < expression.length; i++)
 				{
 					isArray = true;
@@ -632,7 +647,7 @@
 		this.exist = function (args)
 		{
 			var test = testItemCreator();
-			(new TestExist()).doTest().apply(null,prepareArray(test,arguments));
+			(new TestExist()).doTest.apply(null,prepareArray(test,arguments));
 			this.addNewItem(test);
 			return this;
 		}
