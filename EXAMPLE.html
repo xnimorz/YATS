@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Пример использования yats.js</title>
+    <script type="text/javascript" src=yats.js></script>
+    <script>
+        var str = "hi! My name is Nikita";
+        var numb = 100;
+        var a ={s:2,f:3, str:str};
+        var b = a;
+        var c;
+
+        yats
+                .group("check")
+                    .comment("Тест функции").check(function(){return true;})
+                    .comment("Тест функции, которая возвращает false").check(function(){return false;})
+                    .comment("Тест выражения").check(1==2)
+                    .comment("Тест undefined").check(undefined)
+                    .comment("Существование объектов").check(a)
+                    .comment("Тестирования fail check").check(0)
+                .groupClose()
+
+                .group("equal","Тестирование соответствия Equal")
+                        .comment("2 Числа").equal(1,1)
+                        .comment("Несколько чисел").equal(1,1,1,1,"1")
+                        .comment("Тест фейла").equal(1,"1","012")
+                        .comment("еще один тест fail").equal(1,"1","01")
+                        .comment("Тестирование объектов").equal(a,b)
+                .groupClose()
+                .group("exist/notexist")
+                    .comment("Тест функции").exist(function(){return true;})
+                    .comment("Тест функции, которая возвращает false").exist(function(){return false;})
+                    .comment("Тест выражения").exist(1==2)
+                    .comment("Тест undefined").exist(undefined)
+                    .comment("Существование объектов").exist(a)
+                    .comment("Тестирования 0").exist(0)
+                    .comment("Тестирование несуществования").notExist(null,undefined)
+                    .comment("Тестирование несуществования с 1").notExist(null,undefined,1)
+                .groupClose()
+                .toConsole()//Выведем результаты
+                .clearStack()//Очистим стек
+            //Тестирование с выделением переменной. Вложенные группы тестов:
+                .group("Тестирование переменных")
+                    .group("isMatch tests","Тестирование строковой переменной")
+                        .test(str)
+                            .comment("RegExp").isMatch(/[a-z]/g)
+                            .comment("другой строкой").isMatch("name")
+                            .comment("числом").isMatch(100)
+                            .end() //Данная функция позволяет вернуться к yats из методов для тестирования "зафиксированной" переменной
+                 .groupClose()
+                .group("isMatch tests","Тестирование числовой переменной")
+                    .test(numb)
+                        .comment("RegExp").isMatch(/[a-z]/g)
+                        .comment("другой строкой").isMatch("name")
+                        .comment("числом").isMatch(100)
+                        .end()
+                .groupClose()
+                .group("isNotMatch tests")
+                    .test(str)
+                        .comment("RegExp").isNotMatch(/[a-z]/g)
+                        .comment("другой строкой").isNotMatch("name")
+                        .comment("числом").isNotMatch(100)
+                        .end()
+                .groupClose()
+                .group("isDefined tests")
+                    .test(str).comment("Определена ли строка").isDefined().end()
+                    .test(a).comment("Определен ли объект").isDefined().end()
+                    .test(numb).comment("Определено ли число").isDefined().end()
+                    .test(c).comment("Определена ли объявленная переменная без присваивания").isDefined().end()
+                .groupClose()
+                .group("isUndefined tests")
+                    .test(str).comment("Стрoка").isUndefined().end()
+                    .test(a).comment("объект").isUndefined().end()
+                    .test(numb).comment("число").isUndefined().end()
+                    .test(c).comment("переменная без присваивания").isUndefined().end()
+                .groupClose()
+                .group("is tests")
+                    .test(str).comment("Стрoка").is("hi! My name is Nikita").end()
+                    .test(a).comment("объект (разные ссылки)").is({s:2,f:3, str:str}).end()
+                    .test(a).comment("объект (одна ссылка)").is(b).end()
+                    .test(numb).comment("число").is("100").end()
+                    .test(c).comment("переменная без присваивания").is(null).end()
+                .groupClose()
+                .group("isEqual tests")
+                    .test(str).comment("Стрoка").isEqual("hi! My name is Nikita").end()
+                    .test(a).comment("объект (разные ссылки)").isEqual({s:2,f:3, str:str}).end()
+                    .test(a).comment("объект (одна ссылка)").isEqual(b).end()
+                    .test(a).comment("объект и число").isEqual(2).end()
+                    .test(numb).comment("число").isEqual("100").end()
+                    .test(c).comment("переменная без присваивания").isEqual(null).end()
+                .groupClose()
+                .group("isContain tests")
+                    .test(str).comment("Стрoка").isContain("hi! My name is Nikita").end()
+                    .test(a).comment("Содержит ли объект свойство с числом").isContain(2).end()
+                    .test(a).comment("Содержит ли объект свойство со строкой").isContain(str).end()
+                    .test(numb).comment("число").isContain("100").end()
+                    .test(c).comment("переменная без присваивания").isContain(null).end()
+                .groupClose().groupClose().toConsole();
+
+
+    </script>
+</head>
+<body>
+
+</body>
+</html>
