@@ -40,6 +40,7 @@
                 .toConsole()//Выведем результаты
                 .clearStack()//Очистим стек
             //Тестирование с выделением переменной. Вложенные группы тестов:
+
                 .group("Тестирование переменных")
                     .group("isMatch tests","Тестирование строковой переменной")
                         .test(str)
@@ -88,6 +89,7 @@
                     .test(a).comment("объект и число").isEqual(2).end()
                     .test(numb).comment("число").isEqual("100").end()
                     .test(c).comment("переменная без присваивания").isEqual(null).end()
+                    .test({a:a,b:{a:a}}).comment("Object a").isEqual({a:{s:2,f:3, str:str},b:{a:{s:2,f:3, str:str}}}).end()
                 .groupClose()
                 .group("isContain tests")
                     .test(str).comment("Стрoка").isContain("hi! My name is Nikita").end()
@@ -95,7 +97,19 @@
                     .test(a).comment("Содержит ли объект свойство со строкой").isContain(str).end()
                     .test(numb).comment("число").isContain("100").end()
                     .test(c).comment("переменная без присваивания").isContain(null).end()
-                .groupClose().groupClose().toConsole();
+                .groupClose()
+                .group("isRecursiveEqual tests")
+                    .test(str).comment("String").isRecursiveEqual(str).end()
+                    .test(a).comment("Object a with equal object").isRecursiveEqual({s:2,f:3, str:str}).end()
+                    .test(a).comment("Object a with another object").isRecursiveEqual({s:2,f:3}).end()
+                    .test({a:2,f:3,c:{a:5,b:str}}).comment(" Some Object that contain a").isRecursiveEqual({a:2,f:3,c:{a:5,b:str}}).end()
+                    .test({a:a,b:34}).comment("Two equal objects").isRecursiveEqual({a:a,b:34}).end()
+                    .test({a:a,b:34}).comment("Two extended equal objects").isRecursiveEqual({a:{s:2,f:3, str:str},b:34}).end()
+                    .test({a:a,b:{a:a}}).comment("Object a equal").isRecursiveEqual({a:{s:2,f:3, str:str},b:{a:a}}).end()
+                    .test({a:a,b:{a:a}}).comment("Object a equal").isRecursiveEqual({a:{s:2,f:3, str:str},b:{a:{s:2,f:3, str:str}}}).end()
+                    .test({a:a,b:{a:a}}).comment("Object  - fail test").isRecursiveEqual({a:{s:2,f:3, str:str},b:{a:{s:2, str:str}}}).end()
+                .groupClose()
+                .groupClose().toConsole();
 
 
     </script>

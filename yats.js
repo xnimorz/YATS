@@ -378,6 +378,67 @@
 		return this.yats;
 	}
 
+	ValueTestGroup.prototype._isRecursiveEqual = function(first,second)
+	{
+		try
+		{
+			if (first == second)
+				return true;
+
+
+			for (var itemName in first)
+			{
+				if (!(itemName in second))
+				{
+					return false;
+				}
+				if (second[itemName] instanceof Number || second[itemName] instanceof String || second[itemName] instanceof Function)
+				{
+					if (second[itemName] != first[itemName])
+					{
+						return false;
+					}
+				}
+				else
+					if (!this._isRecursiveEqual(first[itemName],second[itemName]))
+					{
+						 return false;
+					}
+			}
+
+			for (var itemName in second)
+			{
+				if (!(itemName in first))
+				{
+					return false;
+				}
+			}
+
+		}
+		catch(e)
+		{
+			return false;
+		}
+		return true;
+	}
+
+	ValueTestGroup.prototype.isRecursiveEqual = function(other)
+	{
+		var test = this.prepareTestItem();
+	   if (this._isRecursiveEqual(this.testValue,other))
+	   {
+		   test.pass = new SuccessResult();
+		   this.yats.addNewItem(test);
+		   return this;
+	   }
+		else
+	   {
+		   test.pass = new FailResult();
+		   this.yats.addNewItem(test);
+		   return this;
+	   }
+	}
+
 	/**
 	 * Проверка на соответствие объектов друг-другу (без рекурсивного спуска)
 	 * @param {object} other
