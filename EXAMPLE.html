@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Пример использования yats.js</title>
+    <link type="text/css" rel="Stylesheet" href=yats.css>
     <script type="text/javascript" src=yats.js></script>
     <script>
         var str = "hi! My name is Nikita";
@@ -110,7 +111,7 @@
                     .test({a:a,b:{a:a}}).comment("Object  - fail test").isRecursiveEqual({a:{s:2,f:3, str:str},b:{a:{s:2, str:str}}}).end()
                 .groupClose()
                 .groupClose().toConsole();
-
+        document.write(yats.getHtmlResult());
 
     </script>
 </head>

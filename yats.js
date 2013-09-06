@@ -378,7 +378,15 @@
 		return this.yats;
 	}
 
-	ValueTestGroup.prototype._isRecursiveEqual = function(first,second)
+	/**
+	 * сравнение двух объектов (first и second). Если определен в true третий параметр - нерекурсивное сравнение
+	 * @param first - сравниваемый объект
+	 * @param second - сравниваемый объект
+	 * @param notRecursive - false/undefined - рекурсивное сравнение, true - нерекурсивное сравнение (по ссылке)
+	 * @returns {boolean} равны ли объекты
+	 * @private
+	 */
+	ValueTestGroup.prototype._isRecursiveEqual = function(first,second, notRecursive)
 	{
 		try
 		{
@@ -392,7 +400,7 @@
 				{
 					return false;
 				}
-				if (second[itemName] instanceof Number || second[itemName] instanceof String || second[itemName] instanceof Function)
+				if (second[itemName] instanceof Number || second[itemName] instanceof String || second[itemName] instanceof Function || notRecursive)
 				{
 					if (second[itemName] != first[itemName])
 					{
@@ -422,21 +430,24 @@
 		return true;
 	}
 
+	/**
+	 * Рекурсивное сравнение двух объектов
+	 * @param other -  объект с которым проходит сравнение
+	 * @returns цепочые вызовы - this
+	 */
 	ValueTestGroup.prototype.isRecursiveEqual = function(other)
 	{
 		var test = this.prepareTestItem();
 	   if (this._isRecursiveEqual(this.testValue,other))
 	   {
 		   test.pass = new SuccessResult();
-		   this.yats.addNewItem(test);
-		   return this;
 	   }
 		else
 	   {
 		   test.pass = new FailResult();
-		   this.yats.addNewItem(test);
-		   return this;
 	   }
+		this.yats.addNewItem(test);
+		return this;
 	}
 
 	/**
@@ -447,50 +458,14 @@
 	ValueTestGroup.prototype.isEqual = function(other)
 	{
 		var test = this.prepareTestItem();
-		try
+		if (this._isRecursiveEqual(this.testValue,other,true))
 		{
-			if (this.testValue == other)
-			{
-				test.pass = new SuccessResult();
-				this.yats.addNewItem(test);
-				return this;
-			}
-
-			for (var itemName in this.testValue)
-			{
-				if (!(itemName in other))
-				{
-					test.pass = new FailResult();
-					this.yats.addNewItem(test);
-					return this;
-				}
-				if (other[itemName] != this.testValue[itemName])
-				{
-					test.pass = new FailResult();
-					this.yats.addNewItem(test);
-					return this;
-				}
-			}
-
-			for (var itemName in other)
-			{
-				if (!(itemName in this.testValue))
-				{
-					test.pass = new FailResult();
-					this.yats.addNewItem(test);
-					return this;
-				}
-
-			}
-
+			test.pass = new SuccessResult();
 		}
-		catch(e)
+		else
 		{
-		   test.pass = new FailResult();
-			this.yats.addNewItem(test);
-			return this;
+			test.pass = new FailResult()
 		}
-		test.pass = new SuccessResult();
 		this.yats.addNewItem(test);
 		return this;
 	}
@@ -620,8 +595,40 @@
 		return this.description;
 	}
 
+	/**
+	 * Представляет результаты тестов группы в виде html кода
+	 */
+	TestGroup.prototype.htmlFormat = function()
+	{
+		//console.group("%s: %s",this.name,this.description);
+		//console.log("total: %s %c success: %s %c fail: %s %c error: %s",this.results.total,"color:blue",this.results.success,"color:red", this.results.fail,"color: Firebrick",this.results.error);
+		//console.groupCollapsed("Tests")
+		var htmlResult = "<p class='yats-title'>"+this.name+": "+this.description+"</p>";
+		htmlResult += "<p class='yats-tests'>total: "+this.results.total+
+						" <span class='yats-tests__success'>success: "+this.results.success+" </span>\
+							<span class='yats-tests__fail'>fail: "+this.results.fail+" </span>\
+								<span class='yats-tests__error'>error: "+this.results.error+"</span></p>";
 
 
+
+		for(var i = 0; i < this.testStack.length; i++)
+		{
+			if (this.testStack[i] instanceof TestGroup)
+			{
+				htmlResult += this.testStack[i].htmlFormat();
+			}
+			else
+			if (!(this.testStack[i].pass instanceof SuccessResult))
+			{
+				htmlResult += "<p class='yats-tests__fail'>"+this.testStack[i].comments +" - " + this.testStack[i].pass.toString() + "</p>";
+			}
+			else
+			{
+				htmlResult += "<p class='yats-tests__success'>"+this.testStack[i].comments +" - " + this.testStack[i].pass.toString() + "</p>";
+			}
+		}
+		return htmlResult;
+	}
 
 
 	/**
@@ -780,6 +787,15 @@
 		{
 			this.consoleFormat();
 			return this;
+		}
+
+		/**
+		 * Выдает html структуру результатов
+		 * @returns {String} Html - код результатов
+		 */
+		this.getHtmlResult = function()
+		{
+			return this.htmlFormat();
 		}
 
 		/**
