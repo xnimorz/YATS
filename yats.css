@@ -1,25 +1,20 @@
-.yats-title
-{
+.yats-title {
     font-weight: bold;
     font-size: 120%;
 }
 
-.yats-tests
-{
+.yats-tests {
     font-size: 110%;
 }
 
-.yats-tests__success
-{
+.yats-tests__success {
     color: #00f;
 }
 
-.yats-tests__fail
-{
+.yats-tests__fail {
     color:#f00;
 }
 
-.yats-tests__error
-{
+.yats-tests__error {
     color:#b22222;
 }
