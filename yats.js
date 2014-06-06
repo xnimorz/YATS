@@ -338,17 +338,19 @@
         return this.yats;
     };
 
+
     /**
      * сравнение двух объектов (first и second). Если определен в true третий параметр - нерекурсивное сравнение
      * @param first - сравниваемый объект
      * @param second - сравниваемый объект
      * @param notRecursive - false/undefined - рекурсивное сравнение, true - нерекурсивное сравнение (по ссылке)
+     * @param isStrict - false/undefined - проверка посредством == , true - проверка на эквивалентность (===)
      * @returns {boolean} равны ли объекты
      * @private
      */
-    ValueTestGroup.prototype._isRecursiveEqual = function (first, second, notRecursive) {
+    ValueTestGroup.prototype._isRecursiveEqual = function (first, second, notRecursive, isStrict) {
         try {
-            if (first == second) {
+            if ((!isStrict && first == second) || (first === second))  {
                 return true;
             }
             for (var itemName in first) {
@@ -356,16 +358,15 @@
                     return false;
                 }
                 if (second[itemName] instanceof Number || second[itemName] instanceof String || second[itemName] instanceof Function || notRecursive) {
-                    if (second[itemName] != first[itemName]) {
+                    if ((!isStrict && second[itemName] != first[itemName]) || (isStrict && second[itemName] !== first[itemName])) {
                         return false;
                     }
                 } else {
-                    if (!this._isRecursiveEqual(first[itemName], second[itemName])) {
+                    if (!this._isRecursiveEqual(first[itemName], second[itemName], notRecursive, isStrict)) {
                         return false;
                     }
                 }
             }
-
             for (itemName in second) {
                 if (!(itemName in first)) {
                     return false;
@@ -400,6 +401,38 @@
     ValueTestGroup.prototype.isEqual = function (other) {
         var test = this.prepareTestItem();
         if (this._isRecursiveEqual(this.testValue, other, true)) {
+            test.pass = new SuccessResult();
+        } else {
+            test.pass = new FailResult();
+        }
+        this.yats.addNewItem(test);
+        return this;
+    };
+
+    /**
+     * Проверка на соответствие объектов друг-другу (без рекурсивного спуска, со строгой проверкой (эквивалентность)
+     * @param {object} other
+     * @returns ссылка на себя (цепочные вызовы)
+     */
+    ValueTestGroup.prototype.isStrictEqual = function (other) {
+        var test = this.prepareTestItem();
+        if (this._isRecursiveEqual(this.testValue, other, true, true)) {
+            test.pass = new SuccessResult();
+        } else {
+            test.pass = new FailResult();
+        }
+        this.yats.addNewItem(test);
+        return this;
+    };
+
+    /**
+     * Рекурсивное сравнение двух объектов со строкой проверкой (без преобразования - эквивалентность)
+     * @param other -  объект с которым проходит сравнение
+     * @returns цепочые вызовы - this
+     */
+    ValueTestGroup.prototype.isRecursiveStrictEqual = function (other) {
+        var test = this.prepareTestItem();
+        if (this._isRecursiveEqual(this.testValue, other, false, true)) {
             test.pass = new SuccessResult();
         } else {
             test.pass = new FailResult();
