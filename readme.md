@@ -2,8 +2,8 @@
 Небольшая библиотека для проведения UNIT-тестирования кода.
 Глобальный объект - yats
 
-wiki страница - http://xnim.ru/blog.php?q=50
-пример работы - http://js.xnim.ru/EXAMPLE.html
+wiki страница - http://xnim.ru/blog?id=38
+пример работы - http://xnim.ru/EXAMPLE.html
 
 #Поддерживает 
  - цепочные вызовы
@@ -24,7 +24,7 @@ wiki страница - http://xnim.ru/blog.php?q=50
  - на соответствие данным внутри объекта\значению (не рекурсивно) (isEqual)
  - на содержание опрежеделенных данных внутри переменной (isContain)
 
-# Работа с yats. (Удобное описание возможностей YATS - http://xnim.ru/blog.php?q=50 )
+# Работа с yats. (Удобное описание возможностей YATS - http://xnim.ru/blog?id=38 )
 
 Подключение - <script type="text/javascript" src="pathTo/yats.js"></script>
 Библиотека создает глобальный объект yats.
