@@ -215,7 +215,7 @@
     ValueTestGroup.prototype.isMatch = function (item) {
         var test = this.prepareTestItem();
         try {
-            if (this.testValue.match(item)) {
+            if (this.testValue == item || this.testValue.match(item)) {
                 test.pass = new SuccessResult();
             } else {
                 test.pass = new FailResult();
