@@ -1,5 +1,9 @@
 (function(scope) {
     'use strict';
+
+    //Рабочая html нода, которая будет затираться после каждого теста (если установлена)
+    var workingNode = null;
+
     /**
      * Успешный результат теста
      * @constructor
@@ -615,25 +619,25 @@
         //console.group('%s: %s',this.name,this.description);
         //console.log('total: %s %c success: %s %c fail: %s %c error: %s',this.results.total,'color:blue',this.results.success,'color:red', this.results.fail,'color: Firebrick',this.results.error);
         //console.groupCollapsed('Tests')
-        var htmlResult = '<p class='yats-title'>' + this.name + ': ' + this.description + '</p>';
-        htmlResult += '<p class='yats-tests'>total: ' + this.results.total +
-            ' <span class='yats-tests__success'>success: ' + this.results.success + ' </span>' +
-            '<span class='yats-tests__fail'>fail: ' + this.results.fail + ' </span>' +
-            '<span class='yats-tests__error'>error: ' + this.results.error + '</span></p>';
+        var htmlResult = '<p class="yats-title">' + this.name + ': ' + this.description + '</p>';
+        htmlResult += '<p class="yats-tests">total: ' + this.results.total +
+            ' <span class="yats-tests__success">success: ' + this.results.success + ' </span>' +
+            '<span class="yats-tests__fail">fail: ' + this.results.fail + ' </span>' +
+            '<span class="yats-tests__error">error: ' + this.results.error + '</span></p>';
 
         for (var i = 0; i < this.testStack.length; i++) {
             if (this.testStack[i] instanceof TestGroup) {
                 htmlResult += this.testStack[i].htmlFormat();
             }
             else if (!(this.testStack[i].pass instanceof SuccessResult)) {
-                htmlResult += '<p class='yats-tests__fail'>' +
+                htmlResult += '<p class="yats-tests__fail">' +
                     this.testStack[i].comments +
                     ' - ' +
                     this.testStack[i].pass.toString() +
                     '</p>';
             }
             else {
-                htmlResult += '<p class='yats-tests__success'>' +
+                htmlResult += '<p class="yats-tests__success">' +
                     this.testStack[i].comments +
                     ' - ' +
                     this.testStack[i].pass.toString() +
@@ -799,6 +803,30 @@
         this.test = function (value) {
             return new ValueTestGroup(value, this);
         };
+
+        /**
+         * Устанавливает рабочую ноду по селектору selector.
+         * Если установлена, то после каждого теста очищается
+         */
+        this.setWorkingNode = function(selector) {
+            this.workingNode = window.document.querySelectorAll('.mv-page');
+        }
+
+        /**
+         * сбрасывает рабочую ноду.
+         * После данной функции после теста рабочая нода не будет очищаться
+         */
+        this.resetWorkingNode = function() {
+            this.workingNode = null;
+        }
+
+        /**
+         * Возвращает рабочую HTML ноду
+         * Если рабочая нода не установлена, функция вернет  null
+         */
+        this.getWorkingNode = function() {
+            return this.workingNode;
+        }
 
         /**
          * Очистка стека тестов
