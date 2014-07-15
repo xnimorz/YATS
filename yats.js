@@ -489,10 +489,7 @@
         return this.name;
     };
 
-    /**
-     * Вывод результатов тестирования группы
-     */
-    TestGroup.prototype.consoleFormat = function () {
+    TestGroup.prototype.consoleFormatBrowser = function() {
         console.group("%s: %s", this.name, this.description);
         console.log("total: %s %c success: %s %c fail: %s %c error: %s",
             this.results.total,
@@ -512,7 +509,6 @@
                         this.testStack[i].comments,
                         this.testStack[i].pass.toString(),
                         this.testStack[i].testValue ? this.testStack[i].testValue : "");
-
                 } else {
                     console.log("%c %s - %s", "color: blue",
                         this.testStack[i].comments,
@@ -523,6 +519,52 @@
         }
         console.groupEnd();
         console.groupEnd();
+    }
+
+    TestGroup.prototype.consoleFormatNode = function(tabs) {
+        var tabsStr = '';
+        for (var i = 0; i < tabs; i++) {
+            tabsStr += '\t';
+        }
+        console.log("%s %s: %s", tabsStr, this.name, this.description);
+        tabsStr += '\t';
+        console.log("%s total: %s \x1B[34m success: %s \x1B[39m\x1B[31m fail: %s error: %s \x1B[39m",
+            tabsStr,
+            this.results.total,
+            this.results.success,
+            this.results.fail,
+            this.results.error);
+        console.log(tabsStr + "Tests");
+        for (var i = 0; i < this.testStack.length; i++) {
+            if (this.testStack[i] instanceof TestGroup) {
+                this.testStack[i].consoleFormat(tabs + 1);
+            } else {
+                if (!(this.testStack[i].pass instanceof SuccessResult)) {
+                    console.log("\x1B[31m %s %s - %s\x1B[39m",
+                        tabsStr,
+                        this.testStack[i].comments,
+                        this.testStack[i].pass.toString(),
+                        this.testStack[i].testValue ? this.testStack[i].testValue : "");
+                } else {
+                    console.log("\x1B[34m %s %s - %s\x1B[39m",
+                        tabsStr,
+                        this.testStack[i].comments,
+                        this.testStack[i].pass.toString(),
+                        this.testStack[i].testValue ? this.testStack[i].testValue : "");
+                }
+            }
+        }
+    }
+    /**
+     * Вывод результатов тестирования группы
+     */
+    TestGroup.prototype.consoleFormat = function (tabs) {
+        if (console.group) {
+            this.consoleFormatBrowser();
+        } else {
+            this.consoleFormatNode(tabs || 0);
+        }
+
     };
 
     /**
