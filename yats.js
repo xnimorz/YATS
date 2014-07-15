@@ -8,7 +8,7 @@
     }
 
     SuccessResult.prototype.toString = function () {
-        return "Success";
+        return 'Success';
     };
     /**
      * Тест провален
@@ -18,7 +18,7 @@
     }
 
     FailResult.prototype.toString = function () {
-        return "Fail";
+        return 'Fail';
     };
     /**
      * Во время теста было вызвано исключение
@@ -28,7 +28,7 @@
     }
 
     ExceptionResult.prototype.toString = function () {
-        return "Exception";
+        return 'Exception';
     };
     /**
      * Класс представления результатов теста
@@ -37,7 +37,7 @@
      * @attribute pass - успешность теста
      */
     function TestItem() {
-        this.comments = "";
+        this.comments = '';
         this.pass = null;
     }
 
@@ -178,7 +178,7 @@
     function ValueTestGroup(value, yats) {
         this.testValue = value;
         this.yats = yats;
-        this.comments = "";
+        this.comments = '';
     }
 
     /**
@@ -199,7 +199,7 @@
         var test = new TestItem();
         test.testValue = this.testValue;
         test.comment(this.comments);
-        this.comments = "";
+        this.comments = '';
         return test;
     };
 
@@ -447,8 +447,8 @@
      * @param {String} description - описание группы
      */
     function TestGroup(name, description) {
-        this.name = name || "";
-        this.description = description || "";
+        this.name = name || '';
+        this.description = description || '';
         //Стек вызовов
         this.testStack = [];
         //Метка закрытости группы (для не корневой группы)
@@ -523,30 +523,30 @@
     };
 
     TestGroup.prototype.consoleFormatBrowser = function() {
-        console.group("%s: %s", this.name, this.description);
-        console.log("total: %s %c success: %s %c fail: %s %c error: %s",
+        console.group('%s: %s', this.name, this.description);
+        console.log('total: %s %c success: %s %c fail: %s %c error: %s',
             this.results.total,
-            "color:blue",
+            'color:blue',
             this.results.success,
-            "color:red",
+            'color:red',
             this.results.fail,
-            "color: Firebrick",
+            'color: Firebrick',
             this.results.error);
-        console.groupCollapsed("Tests");
+        console.groupCollapsed('Tests');
         for (var i = 0; i < this.testStack.length; i++) {
             if (this.testStack[i] instanceof TestGroup) {
                 this.testStack[i].consoleFormat();
             } else {
                 if (!(this.testStack[i].pass instanceof SuccessResult)) {
-                    console.log("%c %s - %s", "color:red",
+                    console.log('%c %s - %s', 'color:red',
                         this.testStack[i].comments,
                         this.testStack[i].pass.toString(),
-                        this.testStack[i].testValue ? this.testStack[i].testValue : "");
+                        this.testStack[i].testValue ? this.testStack[i].testValue : '');
                 } else {
-                    console.log("%c %s - %s", "color: blue",
+                    console.log('%c %s - %s', 'color: blue',
                         this.testStack[i].comments,
                         this.testStack[i].pass.toString(),
-                        this.testStack[i].testValue ? this.testStack[i].testValue : "");
+                        this.testStack[i].testValue ? this.testStack[i].testValue : '');
                 }
             }
         }
@@ -559,31 +559,31 @@
         for (var i = 0; i < tabs; i++) {
             tabsStr += '\t';
         }
-        console.log("%s %s: %s", tabsStr, this.name, this.description);
+        console.log('%s %s: %s', tabsStr, this.name, this.description);
         tabsStr += '\t';
-        console.log("%s total: %s \x1B[34m success: %s \x1B[39m\x1B[31m fail: %s error: %s \x1B[39m",
+        console.log('%s total: %s \x1B[34m success: %s \x1B[39m\x1B[31m fail: %s error: %s \x1B[39m',
             tabsStr,
             this.results.total,
             this.results.success,
             this.results.fail,
             this.results.error);
-        console.log(tabsStr + "Tests");
+        console.log(tabsStr + 'Tests');
         for (var i = 0; i < this.testStack.length; i++) {
             if (this.testStack[i] instanceof TestGroup) {
                 this.testStack[i].consoleFormat(tabs + 1);
             } else {
                 if (!(this.testStack[i].pass instanceof SuccessResult)) {
-                    console.log("\x1B[31m %s %s - %s\x1B[39m",
+                    console.log('\x1B[31m %s %s - %s\x1B[39m',
                         tabsStr,
                         this.testStack[i].comments,
                         this.testStack[i].pass.toString(),
-                        this.testStack[i].testValue ? this.testStack[i].testValue : "");
+                        this.testStack[i].testValue ? this.testStack[i].testValue : '');
                 } else {
-                    console.log("\x1B[34m %s %s - %s\x1B[39m",
+                    console.log('\x1B[34m %s %s - %s\x1B[39m',
                         tabsStr,
                         this.testStack[i].comments,
                         this.testStack[i].pass.toString(),
-                        this.testStack[i].testValue ? this.testStack[i].testValue : "");
+                        this.testStack[i].testValue ? this.testStack[i].testValue : '');
                 }
             }
         }
@@ -612,32 +612,32 @@
      * Представляет результаты тестов группы в виде html кода
      */
     TestGroup.prototype.htmlFormat = function () {
-        //console.group("%s: %s",this.name,this.description);
-        //console.log("total: %s %c success: %s %c fail: %s %c error: %s",this.results.total,"color:blue",this.results.success,"color:red", this.results.fail,"color: Firebrick",this.results.error);
-        //console.groupCollapsed("Tests")
-        var htmlResult = "<p class='yats-title'>" + this.name + ": " + this.description + "</p>";
-        htmlResult += "<p class='yats-tests'>total: " + this.results.total +
-            " <span class='yats-tests__success'>success: " + this.results.success + " </span>" +
-            "<span class='yats-tests__fail'>fail: " + this.results.fail + " </span>" +
-            "<span class='yats-tests__error'>error: " + this.results.error + "</span></p>";
+        //console.group('%s: %s',this.name,this.description);
+        //console.log('total: %s %c success: %s %c fail: %s %c error: %s',this.results.total,'color:blue',this.results.success,'color:red', this.results.fail,'color: Firebrick',this.results.error);
+        //console.groupCollapsed('Tests')
+        var htmlResult = '<p class='yats-title'>' + this.name + ': ' + this.description + '</p>';
+        htmlResult += '<p class='yats-tests'>total: ' + this.results.total +
+            ' <span class='yats-tests__success'>success: ' + this.results.success + ' </span>' +
+            '<span class='yats-tests__fail'>fail: ' + this.results.fail + ' </span>' +
+            '<span class='yats-tests__error'>error: ' + this.results.error + '</span></p>';
 
         for (var i = 0; i < this.testStack.length; i++) {
             if (this.testStack[i] instanceof TestGroup) {
                 htmlResult += this.testStack[i].htmlFormat();
             }
             else if (!(this.testStack[i].pass instanceof SuccessResult)) {
-                htmlResult += "<p class='yats-tests__fail'>" +
+                htmlResult += '<p class='yats-tests__fail'>' +
                     this.testStack[i].comments +
-                    " - " +
+                    ' - ' +
                     this.testStack[i].pass.toString() +
-                    "</p>";
+                    '</p>';
             }
             else {
-                htmlResult += "<p class='yats-tests__success'>" +
+                htmlResult += '<p class='yats-tests__success'>' +
                     this.testStack[i].comments +
-                    " - " +
+                    ' - ' +
                     this.testStack[i].pass.toString() +
-                    "</p>";
+                    '</p>';
             }
         }
         return htmlResult;
@@ -650,7 +650,7 @@
      */
     function YetAnotherTestSystem() {
         //Комментарий к тесту
-        var testComment = "";
+        var testComment = '';
         /**
          * Подготавливает данные, объединяет в единый массив
          * @param {TestItem} test - результат тестов (незаполненный)
@@ -678,9 +678,9 @@
 
         var testItemCreator = function () {
             var test = new TestItem();
-            if (testComment != "") {
+            if (testComment != '') {
                 test.comment(testComment);
-                testComment = "";
+                testComment = '';
             }
             return test;
         };
@@ -814,7 +814,7 @@
             return this;
         };
     }
-    YetAnotherTestSystem.prototype = new TestGroup("YATS", "");
+    YetAnotherTestSystem.prototype = new TestGroup('YATS', '');
     YetAnotherTestSystem.prototype.constructor = YetAnotherTestSystem;
 
     scope.yats = new YetAnotherTestSystem();
