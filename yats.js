@@ -5,10 +5,35 @@
     var workingNode = null;
 
     /**
+     * Объект-проводник, обеспечивает слежение за рабочей html нодой, ее очищением.
+     */
+    var testProvider = {
+        testOver: function() {
+            function isNode(o) {
+                return (
+                    typeof Node === "object" ? o instanceof Node :
+                    o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName==="string"
+                );
+            }
+
+            function isElement(o) {
+                return (
+                    typeof HTMLElement === "object" ? o instanceof HTMLElement : //DOM2
+                    o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName==="string"
+                );
+            }
+
+            if (workingNode && (isNode(workingNode) || isElement(workingNode))) {
+                workingNode.innerHTML = '';
+            }
+        }
+    };
+    /**
      * Успешный результат теста
      * @constructor
      */
     function SuccessResult() {
+        testProvider.testOver();
     }
 
     SuccessResult.prototype.toString = function () {
@@ -19,6 +44,7 @@
      * @constructor
      */
     function FailResult() {
+        testProvider.testOver();
     }
 
     FailResult.prototype.toString = function () {
@@ -29,6 +55,7 @@
      * @constructor
      */
     function ExceptionResult() {
+        testProvider.testOver();
     }
 
     ExceptionResult.prototype.toString = function () {
@@ -688,17 +715,24 @@
             }
             return test;
         };
+
+        /**
+         * внутренняя функция, которая запускает тесты на выполнение
+         */
+        this._runTest = function(testObject, args) {
+            var test = testItemCreator();
+            testObject.doTest.apply(null, prepareArray(test, args));
+            this.addNewItem(test);
+            return this;
+        }
+
         /**
          * Метод для проверки выражения на истинность
          * @param expression - выражение\функция
          * @returns {yats}
          */
         this.check = function (expression) {
-            var test = testItemCreator();
-            var f = new TestCheck();
-            f.doTest.apply(null, prepareArray(test, expression));
-            this.addNewItem(test);
-            return this;
+            return this._runTest(new TestCheck(), expression);
         };
 
         /**
@@ -707,10 +741,7 @@
          * @returns {yats}
          */
         this.equal = function () {
-            var test = testItemCreator();
-            (new TestEqual()).doTest.apply(null, prepareArray(test, arguments));
-            this.addNewItem(test);
-            return this;
+            return this._runTest(new TestEqual(), arguments);
         };
 
         /**
@@ -719,10 +750,7 @@
          * @returns {yats}
          */
         this.exist = function () {
-            var test = testItemCreator();
-            (new TestExist()).doTest.apply(null, prepareArray(test, arguments));
-            this.addNewItem(test);
-            return this;
+            return this._runTest(new TestExist(), arguments);
         };
 
         /**
@@ -731,10 +759,7 @@
          * @returns {yats}
          */
         this.notExist = function () {
-            var test = testItemCreator();
-            (new TestNotExist()).doTest.apply(null, prepareArray(test, arguments));
-            this.addNewItem(test);
-            return this;
+            return this._runTest(new TestCheck(), arguments);
         };
 
         /**
