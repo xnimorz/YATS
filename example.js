@@ -147,4 +147,10 @@ $(function(){
 
             yats.comment('Получить не удается, так как данные в ноде уже удалены').not(node.innerHTML);
         }).toConsole();
+
+        yats.asyncGroup('Асинхронные тесты', function() {
+            setTimeout(function(){
+                yats.comment('тест').ok(true);
+            }, 900)
+        }, 2);
 });

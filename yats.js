@@ -3,6 +3,8 @@
 
     //Рабочая html нода, которая будет затираться после каждого теста (если установлена)
     var workingNode = null;
+    //Время для асинхронных тестов по умолчанию
+    var timeOut = 1000;
 
     /**
      * Объект-проводник, обеспечивает слежение за рабочей html нодой, ее очищением.
@@ -488,11 +490,9 @@
     /**
      * Группа тестов (элемент, объединяющий тесты)
      * @param {String} name - название группы
-     * @param {String} description - описание группы
      */
-    function TestGroup(name, description) {
+    function TestGroup(name) {
         this.name = name || '';
-        this.description = description || '';
         //Стек вызовов
         this.testStack = [];
         //Метка закрытости группы (для не корневой группы)
@@ -544,6 +544,12 @@
             return;
         }
         this.testStack.push(testItem);
+
+        if (this.testCount) {
+            this.completedTests++;
+            this.completedTests === this.testCount && this.completeFunc && this.completeFunc();
+        }
+
     };
 
     /**
@@ -567,7 +573,7 @@
     };
 
     TestGroup.prototype.consoleFormatBrowser = function() {
-        console.group('%s: %s', this.name, this.description);
+        console.group('%s:', this.name);
         console.log('total: %s %c success: %s %c fail: %s %c error: %s',
             this.results.total,
             'color:blue',
@@ -603,7 +609,7 @@
         for (var i = 0; i < tabs; i++) {
             tabsStr += '\t';
         }
-        console.log('%s %s: %s', tabsStr, this.name, this.description);
+        console.log('%s %s:', tabsStr, this.name);
         tabsStr += '\t';
         console.log('%s total: %s \x1B[34m success: %s \x1B[39m\x1B[31m fail: %s error: %s \x1B[39m',
             tabsStr,
@@ -645,21 +651,10 @@
     };
 
     /**
-     *
-     * @returns {String} описание группы
-     */
-    TestGroup.prototype.getDescription = function () {
-        return this.description;
-    };
-
-    /**
      * Представляет результаты тестов группы в виде html кода
      */
     TestGroup.prototype.htmlFormat = function () {
-        //console.group('%s: %s',this.name,this.description);
-        //console.log('total: %s %c success: %s %c fail: %s %c error: %s',this.results.total,'color:blue',this.results.success,'color:red', this.results.fail,'color: Firebrick',this.results.error);
-        //console.groupCollapsed('Tests')
-        var htmlResult = '<p class="yats-title">' + this.name + ': ' + this.description + '</p>';
+        var htmlResult = '<p class="yats-title">' + this.name + ': </p>';
         htmlResult += '<p class="yats-tests">total: ' + this.results.total +
             ' <span class="yats-tests__success">success: ' + this.results.success + ' </span>' +
             '<span class="yats-tests__fail">fail: ' + this.results.fail + ' </span>' +
@@ -687,13 +682,40 @@
         return htmlResult;
     };
 
-    TestGroupAsync = function(testCount, timeOut) {
+    function TestGroupAsync(name, testCount, completeFunc) {
+        this.name = name || '';
+        //Стек вызовов
+        this.testStack = [];
+        //Метка закрытости группы (для не корневой группы)
+        this.isClose = false;
+        //Результаты тестов
+        this.results = {
+            success: 0,
+            fail: 0,
+            error: 0,
+            total: 0
+        };
+
+
+        this.completeFunc = completeFunc || null;
         this.testCount = testCount;
         this.completedTests = 0;
         this.timer = setTimeout(function() {
-            if ()
-        });
+            if (this.completedTests < this.testCount) {
+                for (var i = this.completedTests; i < this.testCount; i++) {
+                    var test = testItemCreator();
+                    test.pass = new ExceptionResult();
+                    this.addNewItem(test);
+                }
+            }
+            if (!this.isClose) {
+                this.close();
+            }
+        }.bind(this), timeOut);
     }
+
+    TestGroupAsync.prototype = new TestGroup;
+    TestGroupAsync.prototype.constructor = TestGroupAsync;
     /**
      * Корневая группа, собственно объект с методами для тестирования
      * @constructor
@@ -811,15 +833,35 @@
         /**
          * Создание группы тестов
          * @param {String} name - название группы
-         * @param {String} description - описание группы
          * @param {function} exec - функция, в которой описаны тесты данной группы. Необязательный параметр. Возможна замена с помощью yats.group(...); ... yats.groupClose();
          */
-        this.group = function (name, description, exec) {
-            if (description instanceof Function) {
-                exec = description;
-                description = '';
+        this.group = function (name, exec) {
+            var group = new TestGroup(name);
+            this.addNewItem(group);
+            if (exec instanceof Function) {
+                exec();
+                this.groupClose();
             }
-            var group = new TestGroup(name, description);
+            return this;
+        };
+
+        /**
+         * Создание асинхронной группы тестов
+         * @param {String} name - название группы
+         * @param {function} exec - функция, в которой описаны тесты данной группы. Необязательный параметр. Возможна замена с помощью yats.group(...); ... yats.groupClose();
+         */
+        this.asyncGroup = function (name, exec, testCount, completeFunc) {
+            if (typeof exec === 'number') {
+                if (testCount instanceof Function) {
+                    completeFunc = testCount;
+                }
+                testCount = exec;
+            }
+
+            if (!testCount || testCount instanceof Function) {
+                throw "Необходимо определить testCount!";
+            }
+            var group = new TestGroupAsync(name, testCount, completeFunc);
             this.addNewItem(group);
             if (exec instanceof Function) {
                 exec();
@@ -886,6 +928,21 @@
          */
         this.getWorkingNode = function() {
             return workingNode;
+        }
+
+        /**
+         * Устанавливает значение таймаута для асинхронных тестов
+         */
+        this.setTimeOut = function(time) {
+            timeOut = time;
+            return this;
+        }
+
+        /**
+         * Получает значение таймаута
+         */
+        this.getTimeOut = function() {
+            return timeOut;
         }
 
         /**
