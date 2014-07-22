@@ -687,7 +687,13 @@
         return htmlResult;
     };
 
-
+    TestGroupAsync = function(testCount, timeOut) {
+        this.testCount = testCount;
+        this.completedTests = 0;
+        this.timer = setTimeout(function() {
+            if ()
+        });
+    }
     /**
      * Корневая группа, собственно объект с методами для тестирования
      * @constructor

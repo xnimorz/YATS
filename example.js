@@ -147,5 +147,4 @@ $(function(){
 
             yats.comment('Получить не удается, так как данные в ноде уже удалены').not(node.innerHTML);
         }).toConsole();
-
 });
