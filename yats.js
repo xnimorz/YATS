@@ -33,7 +33,6 @@
      * @constructor
      */
     function SuccessResult() {
-        testProvider.testOver();
     }
 
     SuccessResult.prototype.toString = function () {
@@ -44,7 +43,6 @@
      * @constructor
      */
     function FailResult() {
-        testProvider.testOver();
     }
 
     FailResult.prototype.toString = function () {
@@ -55,7 +53,6 @@
      * @constructor
      */
     function ExceptionResult() {
-        testProvider.testOver();
     }
 
     ExceptionResult.prototype.toString = function () {
@@ -91,7 +88,7 @@
      * Тест проверки истинности выражения\функции
      * @constructor
      */
-    function TestCheck() {
+    function TestOk() {
         /**
          * Тест на истинность выражения
          * @param {TestItem} testItem - объект, описывающий результат выражения
@@ -117,8 +114,40 @@
         };
     }
 
-    TestCheck.prototype = new TestTemplate();
-    TestCheck.prototype.constructor = TestCheck;
+    TestOk.prototype = new TestTemplate();
+    TestOk.prototype.constructor = TestOk;
+
+    /**
+    * Тест проверки истинности выражения\функции
+    * @constructor
+    */
+    function TestNot() {
+        /**
+        * Тест на истинность выражения
+        * @param {TestItem} testItem - объект, описывающий результат выражения
+        * @param {object,function} expression - выражение\функция
+        */
+        this.doTest = function (testItem, expression) {
+            if (expression instanceof Function) {
+                try {
+                    expression = expression();
+                }
+                catch (e) {
+                    expression = null;
+                    testItem.pass = new ExceptionResult();
+                    return;
+                }
+            }
+            if (!expression) {
+                testItem.pass = new SuccessResult();
+            } else {
+                testItem.pass = new FailResult();
+            }
+        };
+    }
+
+    TestNot.prototype = new TestTemplate();
+    TestNot.prototype.constructor = TestNot;
 
     /**
      * Тест проверки на эквивалентность значений\ссылок
@@ -184,7 +213,7 @@
          */
         this.doTest = function (testItem) {
             if (arguments.length == 1) {
-                testItem.pass = new FailResult();
+                testItem.pass = new SuccessResult();
                 return;
             }
             for (var i = 1; i < arguments.length; i++) {
@@ -295,22 +324,6 @@
             test.pass = new FailResult();
         } else {
             test.pass = new SuccessResult();
-        }
-        this.yats.addNewItem(test);
-        return this;
-    };
-
-    /**
-     * Тест на равенство переменной заданому item
-     * @param {object} item
-     * @returns ссылка на себя (цепочные вызовы)
-     */
-    ValueTestGroup.prototype.is = function (item) {
-        var test = this.prepareTestItem();
-        if (this.testValue == item) {
-            test.pass = new SuccessResult();
-        } else {
-            test.pass = new FailResult();
         }
         this.yats.addNewItem(test);
         return this;
@@ -731,8 +744,17 @@
          * @param expression - выражение\функция
          * @returns {yats}
          */
-        this.check = function (expression) {
-            return this._runTest(new TestCheck(), expression);
+        this.ok = function (expression) {
+            return this._runTest(new TestOk(), expression);
+        };
+
+        /**
+         * Метод для проверки выражения на ложь
+         * @param expression - выражение\функция
+         * @returns {yats}
+         */
+        this.not = function (expression) {
+            return this._runTest(new TestNot(), expression);
         };
 
         /**
@@ -759,7 +781,7 @@
          * @returns {yats}
          */
         this.notExist = function () {
-            return this._runTest(new TestCheck(), arguments);
+            return this._runTest(new TestNotExist(), arguments);
         };
 
         /**
@@ -787,11 +809,15 @@
          * @param {function} exec - функция, в которой описаны тесты данной группы. Необязательный параметр. Возможна замена с помощью yats.group(...); ... yats.groupClose();
          */
         this.group = function (name, description, exec) {
+            if (description instanceof Function) {
+                exec = description;
+                description = '';
+            }
             var group = new TestGroup(name, description);
             this.addNewItem(group);
             if (exec instanceof Function) {
                 exec();
-                group.close();
+                this.groupClose();
             }
             return this;
         };
@@ -801,6 +827,7 @@
          */
         this.groupClose = function () {
             this.close();
+            testProvider.testOver();
             return this;
         };
 
@@ -834,7 +861,8 @@
          * Если установлена, то после каждого теста очищается
          */
         this.setWorkingNode = function(selector) {
-            this.workingNode = window.document.querySelectorAll('.mv-page');
+            workingNode = window.document.querySelectorAll(selector)[0];
+            return this;
         }
 
         /**
@@ -842,7 +870,8 @@
          * После данной функции после теста рабочая нода не будет очищаться
          */
         this.resetWorkingNode = function() {
-            this.workingNode = null;
+            workingNode = null;
+            return this;
         }
 
         /**
@@ -850,7 +879,7 @@
          * Если рабочая нода не установлена, функция вернет  null
          */
         this.getWorkingNode = function() {
-            return this.workingNode;
+            return workingNode;
         }
 
         /**
