@@ -703,7 +703,7 @@
         this.timer = setTimeout(function() {
             if (this.completedTests < this.testCount) {
                 for (var i = this.completedTests; i < this.testCount; i++) {
-                    var test = testItemCreator();
+                    var test = new TestItem();
                     test.pass = new ExceptionResult();
                     this.addNewItem(test);
                 }
