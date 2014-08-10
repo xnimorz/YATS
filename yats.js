@@ -753,7 +753,7 @@
                 testObject.doTest.apply(null, prepareArray(test, args));
                 this.addNewItem(test);
                 return this;
-            }
+            };
 
             /**
              * Метод для проверки выражения на истинность
@@ -879,7 +879,7 @@
             this.setWorkingNode = function(selector) {
                 workingNode = window.document.querySelectorAll(selector)[0];
                 return this;
-            }
+            };
 
             /**
              * сбрасывает рабочую ноду.
@@ -888,7 +888,7 @@
             this.resetWorkingNode = function() {
                 workingNode = null;
                 return this;
-            }
+            };
 
             /**
              * Возвращает рабочую HTML ноду
@@ -896,7 +896,7 @@
              */
             this.getWorkingNode = function() {
                 return workingNode;
-            }
+            };
 
             /**
              * Очистка стека тестов
