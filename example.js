@@ -6,7 +6,7 @@ $(function(){
         var c;
 
         yats
-                .group("is/isNot")
+                .group("ok/not")
                     .comment("Проверка выполнения функции, которая возвращает true (ok)").ok(function(){return true;})
                     .comment("Тест функции, которая возвращает false (not)").not(function(){return false;})
                     .comment("Тест выражения (not)").not(1==2)
