@@ -59,20 +59,22 @@
          * @constructor
          */
         function FailResult() {
+            this.err = new Error();
         }
 
         FailResult.prototype.toString = function () {
-            return 'Fail';
+            return 'Fail - ' + this.err.stack;
         };
         /**
          * Во время теста было вызвано исключение
          * @constructor
          */
         function ExceptionResult() {
+            this.err = new Error();
         }
 
         ExceptionResult.prototype.toString = function () {
-            return 'Exception';
+            return 'Exception - ' + this.err.stack;;
         };
         /**
          * Класс представления результатов теста
